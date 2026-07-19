@@ -1,0 +1,61 @@
+version: '3.8'
+
+services:
+
+  kafka:
+    build: .
+    ports:
+      - "9092:9092"
+    working_dir: "/opt/kafka"
+    tty: true
+    volumes:
+      - ./config/server.properties:/opt/kafka/config/server.properties
+      - ~/.m2:/root/.m2
+      - kafka-data:/opt/kafka/data
+    command: ["./bin/kafka-server-start.sh", "/opt/kafka/config/server.properties"]
+
+  click-producer-web:
+    build:
+      context: .
+      dockerfile: Dockerfile-java
+    container_name: click-producer-web
+    ports:
+      - "8080:8080"
+    working_dir: /app
+    tty: true
+    depends_on:
+      - kafka
+    volumes:
+      - ./click-producer-web:/app
+      - ~/.m2:/root/.m2
+
+  click-streams-app:
+    build:
+      context: .
+      dockerfile: Dockerfile-java
+    container_name: click-streams-app
+    working_dir: /app
+    tty: true
+    depends_on:
+      - kafka
+    volumes:
+      - ./click-streams-app:/app
+      - ~/.m2:/root/.m2
+
+  click-rest-consumer:
+    build:
+      context: .
+      dockerfile: Dockerfile-java
+    container_name: click-rest-consumer
+    ports:
+      - "8081:8081"
+    working_dir: /app
+    tty: true
+    depends_on:
+      - kafka
+    volumes:
+      - ./click-rest-consumer:/app
+      - ~/.m2:/root/.m2
+
+volumes:
+  kafka-data:
