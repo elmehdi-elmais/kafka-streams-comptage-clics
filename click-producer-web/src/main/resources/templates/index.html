@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Compteur de clics</title>
+    <style>
+        body { font-family: sans-serif; text-align: center; margin-top: 100px; }
+        input {
+            font-size: 16px;
+            padding: 8px;
+            margin-bottom: 20px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+        }
+        button {
+            font-size: 20px;
+            padding: 15px 30px;
+            background-color: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        button:hover { background-color: #1d4ed8; }
+        #status { margin-top: 20px; color: #16a34a; font-weight: bold; }
+    </style>
+</head>
+<body>
+<h1>Cliquez ici</h1>
+
+<div>
+    <label for="userId">Identifiant utilisateur : </label>
+    <input type="text" id="userId" placeholder="ex: user1">
+</div>
+
+<button id="clickBtn">Cliquer</button>
+<p id="status"></p>
+
+<script>
+    let clickCount = 0;
+
+    // Génère un userId par défaut si le champ est vide (persisté dans le navigateur)
+    function getOrCreateUserId() {
+        let stored = sessionStorage.getItem('userId');
+        if (!stored) {
+            stored = 'user' + Math.floor(Math.random() * 1000);
+            sessionStorage.setItem('userId', stored);
+        }
+        return stored;
+    }
+
+    const userIdInput = document.getElementById('userId');
+    userIdInput.value = getOrCreateUserId();
+
+    document.getElementById('clickBtn').addEventListener('click', function () {
+        const userId = userIdInput.value.trim() || getOrCreateUserId();
+        sessionStorage.setItem('userId', userId);
+
+        fetch('/click?userId=' + encodeURIComponent(userId), { method: 'POST' })
+            .then(response => response.text())
+            .then(() => {
+                clickCount++;
+                document.getElementById('status').innerText =
+                    'Clic envoyé par ' + userId + ' ! (' + clickCount + ' clic(s) dans cette session)';
+            });
+    });
+</script>
+</body>
+</html>
